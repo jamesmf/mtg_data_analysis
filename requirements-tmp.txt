@@ -1,0 +1,13 @@
+jupyter==1.0.0
+scikit-learn==0.24.2
+pandas==1.1.5
+tensorflow-probability==0.12.1
+tensorflow-gpu==2.4.1
+nb_black==1.0.7
+jedi==0.17.2
+plotly==5.3.1
+typing-extensions>=3.10.0.0
+mlflow==1.20.2
+lxml==4.6.3
+html5lib==1.1
+beautifulsoup4==4.10.0

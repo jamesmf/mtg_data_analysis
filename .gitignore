@@ -1,0 +1,7 @@
+models/*
+mlruns/*
+logs/*
+data/*
+.ipynb*
+tests/*
+*Untitled*
