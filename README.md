@@ -23,7 +23,7 @@ In practice, the accuracy on the holdout set tends to hover around `0.62` for ou
 
 ![calibration curve](/img/calibration_curve.png)
 
-We can also inspect the prediction distribution, which is also encouraging. Given the limited information we're feeding the model, the majority of predictions are that a deck will win about 35-65% of the time.
+We can also inspect the prediction distribution, which is also encouraging. Given the limited information we're feeding the model, the majority of predictions are that a deck will win about 35-75% of the time.
 
 ![plot of distribution of predictions](/img/distribution_of_predictions.png)
 
