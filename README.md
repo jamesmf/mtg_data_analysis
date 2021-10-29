@@ -6,7 +6,24 @@ The data that [17 Lands releases](https://www.17lands.com/public_datasets) conta
 This post is an attempt to use machine learning to understand a bit about what decks are likely to succeed in MID. The goal is not causal inference (I don't aim to say "this deck wins because it plays `Adeline`) but rather to generate some hypotheses and give a framework for thinking about the format. When possible, I'll keep the machine learning (ML) background to a minimum, but if you're interested, the code is on github at the link above.
 
 
-### The Model
+### A Note on Win Likelihood
+
+The 17Lands platform is great for improving your play, but the claim that the win rate observed in the data was because the average 17Lands user was better than average didn't seem like it was the full story. At the top levels of play this might hold true, but decent matchmaking should then theoretically just pair 17Lands player with higher-quality opponents.
+
+If we instead think about the nature of the draft, the way we observe the data should naturally tilt towards seeing more wins than losses. Higher variance among decks will make this more pronounced. Imagine the most extreme case, with two 17Lands players `A` and `B` playing two non-17Lands opponents `C` and `D`. Player `A` always beats `C` and Player `B` always loses to `D`. After one iteration, in our observed dataset we'll see 7 wins and 3 losses, or a win rate of `0.70`. That is the case with maximum variance - one deck had a win rate of `1.0` and the other `0.0` and we had nothing in between. In reality decks will have many different win rates between `0.0` and `1.0`. For the following analysis, we can make the  assumption that a deck's win likelihood going into a draft is normally distributed around some mean. 
+
+We can then simulate drafts by generating random deck win likelihoods and the resultant number of wins/losses. For each mean and standard deviation of this `deck_win_likelihood` distribution, we can get an observed win rate. We're looking to compare that to the observed win likelihood in our real 17Lands dataset to get an idea of how much above `0.50` the decks a 17Lands user tend to be. Note that the assumption that a deck's win likelihood is constant through a draft is not a strong one, since presumably ranking up along the way changes your opponent pool.
+
+Plotting out various means and standard deviations of this distribution, we get something like this:
+
+![observed wins as a function of win likelihood distribution](/img/win_likelihood_distribution.png)
+
+You can see that if the true distribution has a mean as low as `0.52` and a reasonably high variance of 0.2 (meaning about 67% of decks fall between `win_likelihood (0.32, 0.72)`), we could observe a win likelihood of `0.56` as we do in this dataset. If the variance is much lower, the mean could be closer to `0.545`. Without perfect draft data (every game for every deck), it's hard to know which of these is closer.
+
+While those numbers are lower than the original appearance of a six percent bump to win rate, they're still nothing to be ignored!
+
+
+### The First Model
 
 When analyzing data or training models, one of the most important considerations is the "shape" of your data. What is a single unit or example? In this case, the `17 Lands` dataset is naturally at the game level - we get information about what is in the deck/sideboard, whether the user won or lost, a bit of user information, and a bit of draft information. One appealing option to proceed would be to roll this information up to the user-draft level and model the distribution of how many wins a user will get in a draft. However, that approach requires you to be sure you aren't missing any games for a user within a draft, and you would likely need to make the input to your model simply all the cards they drafted, rather than the specific ones they played per game. If we consider a specific user's deck to be a combination of `(draft_id, main_colors, user_win_rate_bucket)`, then about 11% of combinations don't meet the criterion of having either 7 wins or 3 losses. With that in mind, the model is set up to accept the deck and sideboard for a specific game. 
 
