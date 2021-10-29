@@ -10,7 +10,7 @@ This post is an attempt to use machine learning to understand a bit about what d
 
 The 17Lands platform is great for improving your play, but the claim that the win rate observed in the data was because the average 17Lands user was better than average didn't seem like it was the full story. At the top levels of play this might hold true, but decent matchmaking should then theoretically just pair 17Lands player with higher-quality opponents.
 
-If we instead think about the nature of the draft, the way we observe the data should naturally tilt towards seeing more wins than losses. Higher variance among decks will make this more pronounced. Imagine the most extreme case, with two 17Lands players `A` and `B` playing two non-17Lands opponents `C` and `D`. Player `A` always beats `C` and Player `B` always loses to `D`. After one iteration, in our observed dataset we'll see 7 wins and 3 losses, or a win rate of `0.70`. That is the case with maximum variance - one deck had a win rate of `1.0` and the other `0.0` and we had nothing in between. In reality decks will have many different win rates between `0.0` and `1.0`. For the following analysis, we can make the  assumption that a deck's win likelihood going into a draft is normally distributed around some mean. 
+If we instead think about the nature of the draft, the way we observe the data should naturally tilt towards seeing more wins than losses. Higher variance among decks will make this more pronounced. Imagine the most extreme case, with two 17Lands players `A` and `B` playing two non-17Lands opponents `C` and `D`. Player `A` always beats `C` and Player `B` always loses to `D`. After one iteration, in our observed dataset we'll see 7 wins from player `A` and 3 losses from player `B`, or a win rate of `0.70`. That is the case with maximum variance - one deck had a win rate of `1.0` and the other `0.0` and we had nothing in between. In reality decks will have many different win rates between `0.0` and `1.0`. For the following analysis, we can make the  assumption that a deck's win likelihood going into a draft is normally distributed around some mean. 
 
 We can then simulate drafts by generating random deck win likelihoods and the resultant number of wins/losses. For each mean and standard deviation of this `deck_win_likelihood` distribution, we can get an observed win rate. We're looking to compare that to the observed win likelihood in our real 17Lands dataset to get an idea of how much above `0.50` the decks a 17Lands user tend to be. Note that the assumption that a deck's win likelihood is constant through a draft is not a strong one, since presumably ranking up along the way changes your opponent pool.
 
@@ -18,9 +18,11 @@ Plotting out various means and standard deviations of this distribution, we get 
 
 ![observed wins as a function of win likelihood distribution](/img/win_likelihood_distribution.png)
 
-You can see that if the true distribution has a mean as low as `0.52` and a reasonably high variance of 0.2 (meaning about 67% of decks fall between `win_likelihood (0.32, 0.72)`), we could observe a win likelihood of `0.56` as we do in this dataset. If the variance is much lower, the mean could be closer to `0.545`. Without perfect draft data (every game for every deck), it's hard to know which of these is closer.
+You can see that if the true distribution has a mean as low as `0.52` and a variance of 0.2 (meaning about 67% of decks fall between `win_likelihood (0.32, 0.72)`), we would observe a win likelihood of `0.56` as we do in this dataset. If the true variance is much lower, the true mean would be closer to `0.545` for us to observe a `0.56` win rate. Without perfect draft data (every game for every deck), it's hard to know exactly how much variance there is and therefore the true mean win rate, but this gives us reasonable estimates.
 
 While those numbers are lower than the original appearance of a six percent bump to win rate, they're still nothing to be ignored!
+
+On to training some models.
 
 
 ### The First Model
