@@ -52,3 +52,34 @@ Our model lets us explore not just the raw win rates for decks, but the distribu
 While the mean of the distribution for Azorius is the highest, we can see that Dimir gets far more play. So by raw number of times that players have assembled a deck our model believes can win 70% of games, Dimir has a huge advantage.
 
 Simic shows a tighter distribution - very rarely do we see a Simic deck our model thinks will win 70% or more of its games. But not only is the peak of the distribution lower, it is yet still less drafted than Azorius, suggesting it's even less likely you'll come out of a draft with a killer Simic deck.
+
+
+
+## Part Two: Decks as Graphs
+
+After trying an attention-based model on the data above, I started wondering if it was more efficient to encode a bit more domain knowledge into the shape of the input to our model. Graph Neural Networks operate over an arbitrary-shape graph, and can do a great job of explicitly capturing relationships between parts of your inputs. For this second half of the post, I've switched to `pytorch` rather than `tensorflow` for ease of using `dgl`, a graph ML package. 
+
+
+### Modeling the Input
+
+One option to increase the information available to our model would have been to add features to the cards - we could give the model data about each card (its `cmc`, `type`, etc). and expect it to learn reasonable relationships between those inputs. With graph neural networks (GNNs) we can encode those relationships much more explicitly by defining entities/nodes and relationships/edges between them. For those unfamiliar with graphs, some classic datasets you would represent this way are highly relational datasets like business data (`employee_A reports_to employee_B`, `employee_B works_in office_C`) or a social network (`user_A follows user_B`, `user_B <3 content_C`).
+
+By setting up our magic decks this way, we can control the flow of information in our network, we can mix deck-level information with card-level information, and we can have a very flexible data model.
+
+Our decks have the following entities/nodes:
+
+ - deck node - this represents the deck itself. All cards in the deck have an edge to this node
+ - sideboard node - this represents the sideboard. All cards in the sideboard have an edge to this node
+ - virtual node - this node is connected only to the deck and sideboard nodes. It is meant to collect information from both
+ - card nodes - each card is added (one or more times) to the graph, and connected to either the deck or sideboard accordingly
+ - core type nodes - each type (creature, planeswalker, sorcery, ...) gets a node, including lands
+ - subtype nodes - each word in a type line also gets a node. This lets us model shared types (i.e. a `human wizard` card gets connected to a `human` node and a `wizard` node)
+ - cost nodes - each converted mana cost up to 6 gets its own node, allowing us to explicitly learn information about counts of 1-, 2-, ... 6+-drops in the deck
+
+While I don't love python's options for plotting graphs interactively (if you have a package you love for it, post it as an github issue!), and graphs this interconnected are busy to look at, here's an example `MID` deck:
+
+![Example of a deck graph](/img/example_deck_graph.png)
+
+Notice that the degree (the number of edges in/out of a node) provides our model with a way of measuring counts of important features - the more 1-drops the deck has, the more information from the `cmc-1` node will flow to the `deck`/`virtual` node. Similarly, we capture a few other aspects that may be important in some decks: for instance, we have several `human`, `wizard`, and `zombie` cards. These nodes will help cards of similar types share information as well.
+
+We also put some data on the nodes themselves. We create a string that includes `mana_cost`, `type_line`, `card_text`, and `power/toughness` using the `Scryfall/oracle` dataset. This provides a way to model synergies like `Skaab Wrangler` - the text features captures the concept of a `zombie` synergy, and connection to other `zombie` cards through the appropriate type node lets that information flow to those other cards in 2 hops.
